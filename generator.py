@@ -1,4 +1,5 @@
 from string import Template
+import json
 
 template_main = Template("""
 email:$email
@@ -21,14 +22,44 @@ $sender
 
 """)
 
-def generate(data):
-    print("\n\n\n")
-    print(data)
+def excelList(filename):
+    with open(filename, 'r') as f:
+        line = f.readline().strip()
+        data = line.split('\t')
 
-    email = ""
-    name = ""
-    call_mentor = ""
-    services = []
+    #print(data)
+    #print('\n\n')
+    return data
+
+def capitalName(string):
+    words = string.split()
+
+    if len(words) != 0:
+        return words[0].capitalize()
+    
+def support(data):
+    service_set = set()
+    for key, value in data.items():
+        if ('Ref. Services' in key) and value:
+            print(key + value + '\n')
+
+            service_set.update(value.split(', '))
+
+    return service_set
+
+def generate(data):
+    #print(data)
+
+    with open("config.json", "r") as config:
+        config_data = json.load(config)
+
+    email = data["Email"]
+    name = capitalName(data["First Name"])
+
+    call_mentor = capitalName(data["Ambassador Name"])
+
+    services = list(support(data))
+    print(services)
 
     details = "\n".join(services) # service list
 
@@ -37,14 +68,20 @@ def generate(data):
         name = name,
         c_mentor = call_mentor,
         details = details,
-        sender = "Eamonn"
+        sender = config_data["Sendername"]
     )
 
     return email_content
 
 
-with open('raw_data.txt', 'r') as f:
-    line = f.readline().strip()
-    data = line.split('\t')
 
-print(generate(data))
+call_file = excelList("surveyFormat.txt")
+student_data = excelList("raw_data.txt")
+
+if (len(call_file) != len(student_data)):   # basic error handling
+    raise Exception("list length does not match")
+
+dataset = {key:value for key, value in list(zip(call_file, student_data))}
+
+email = generate(dataset)
+#print(email)
