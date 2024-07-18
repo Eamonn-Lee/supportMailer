@@ -36,13 +36,15 @@ def generate(data):
         email = email,
         name = name,
         c_mentor = call_mentor,
-        details = details
+        details = details,
+        sender = "Eamonn"
     )
 
     return email_content
 
 
-print("input:\n")
-data = input().split('\t')
+with open('raw_data.txt', 'r') as f:
+    line = f.readline().strip()
+    data = line.split('\t')
 
 print(generate(data))
